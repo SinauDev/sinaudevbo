@@ -26,23 +26,43 @@ class Bot {
 	}
 
 
-	public static function runLongPoll($callback,$args=[]){
+	public static function runLongPoll($callback){
 
-		$update_file = isset($args['update_file'])?$args['update_file']:'last_update_id';
-		$offset = file_exists($update_file)?(int)file_get_contents($update_file):0;
-		$params = array(
-				'offset' => isset($args['offset'])?$args['offset']:$offset,
-				'limit' => isset($args['limit'])?$args['limit']:100,
-				'timeout' => isset($args['timeout'])?$args['timeout']:0
-		);
-	
-		$ret = self::botSend(array('cmd' => 'getUpdates', 'params' => $params));
-		return $callback($ret);
+		while (true) {
+			
+			sleep(3);
+
+			$update_file = 'last_update_id';
+			$update_id = file_exists($update_file)?(int)file_get_contents($update_file):0;
+			$params = array(
+				'offset' => $update_id,
+				'limit' => 100,
+				'timeout' => 0);
+		
+			$ret = self::botSend(array('cmd' => 'getUpdates', 'params' => $params));
+			$results = $ret['result'];
+
+			if (!empty($results)){
+				foreach ($results as $key) {
+					$update_id = $key['update_id'];
+					$callback($key);		
+				}
+			}		
+
+			file_put_contents($update_file, $update_id + 1);
+			
+		}
 
 	}
 
 	public static function send($args){
 		return self::botSend($args);
+	}
+
+	public static function sendMessage($msg,$params){
+		$params['text'] = $msg;
+		if (!isset($params['parse_mode'])) $params['parse_mode'] = 'HTML';
+		return self::send(array('cmd' => 'sendMessage', 'params' => $params));
 	}
 
 	private function botSend($args){
