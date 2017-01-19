@@ -65,6 +65,13 @@ class Bot {
 		return self::send(array('cmd' => 'sendMessage', 'params' => $params));
 	}
 
+	public static function answerInlineQuery($query_id,$results,$params=[]){
+		$params['inline_query_id'] = $query_id;
+		$params['results'] = $results;
+		return self::send(array('cmd'=>'answerInlineQuery', 'params'=>$params));
+	}
+
+
 	private function botSend($args){
 
 		$botCommand = isset($args['cmd'])?$args['cmd']:'';
