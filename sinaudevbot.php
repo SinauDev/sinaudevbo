@@ -6,33 +6,37 @@ require __DIR__ . '/telegrambot.php';
 
 use \telegram\Bot;
 
-$webHookInfo = Bot::webHookInfo();
-$isWebhook = empty($webHookInfo['url'])?false:true;
+//Bot::setToken('');
 
-//long polling method	
-if ($isWebhook == false)
-{
-		Bot::runLongPoll(function($update)
+//print_r(Bot::getMe());
+//$webHookInfo = Bot::webHookInfo();
+//$isWebhook = empty($webHookInfo['url'])?false:true;
+//Bot::setWebhook($isWE)
+
+Bot::run(function($update)
+	{
+
+		$message = isset($update['message'])?$update['message']:'';
+		$inline = isset($update['inline_query'])?$update['inline_query']:'';
+				
+		$message_id = isset($message['message_id'])?$message['message_id']:'';
+				
+		Bot::setParam(array('reply_to_message_id' => $message_id));
+		
+		if (!empty($message))
 		{
-
-				$message = isset($update['message'])?$update['message']:'';
-				$inline = isset($update['inline_query'])?$update['inline_query']:'';
-
-				if (!empty($message)){
-					if ($message['text'] == 'ping')
-					{
-						$send = Bot::sendMessage('<b>PONG</b>', array('chat_id' => $message['chat']['id'], 
-								 		 	   'reply_to_message_id' => $message['message_id'])
-												);
-					}
+			if ($message['text'] == 'ping')
+				{
+					$send = Bot::sendMessage('<b>PONG</b>');
+					//print_r($send);
 				}
+		}
 
-				//inline method
-				if (!empty($inline)){
-				   inlinebot($inline);
-				}
-		});
-}
+		//inline method
+		if (!empty($inline)){  inlinebot($inline);	}
+	}
+);
+
 
 
 function inlinebot($inline){
@@ -60,12 +64,15 @@ function inlinebot($inline){
 									
 									]
                 ];
+                
+                $textMessage = "<b>{$value['title']}</b>\n\n";
+                $textMessage .= $value['description'];
 
 				$content = array('type'=>'article',
 							'id' => (string)$key,
 							'title' => $value['title'],
 							'hide_url' => true,
-							'message_text' => $value['description'],
+							'message_text' => $textMessage,
 							'parse_mode' => 'HTML',
 							'description' => tokenTruncate($value['description'],30),
 							'reply_markup'=>$keyboard);
