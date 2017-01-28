@@ -4,9 +4,10 @@ namespace telegram;
 
 class Bot {
 
-	private static $params;
+	private static $params=[];
 	private static $token;
 	private static $isWebhook = false;
+	private static $update_id = 0;
 	
 	
 	public static function setToken($token){
@@ -50,29 +51,35 @@ class Bot {
 	 else {
 		while (true)
 			{
-			
 				sleep(1);
-
-				$update_file = 'last_update_id';
-				$update_id = file_exists($update_file)?(int)file_get_contents($update_file):0;
 				$params = array(
-					'offset' => $update_id,
+					'offset' => self::$update_id,
 					'limit' => 100,
 					'timeout' => 0);
-			
+				$result['error'] = true;
 				$ret = self::botSend(array('cmd' => 'getUpdates', 'params' => $params));
 				$results = (isset($ret['result']))?$ret['result']:'';
 
 				if (!empty($results)){
 					foreach ($results as $key) {
+						$result['error'] = false;
 						$update_id = $key['update_id'];
-						self::$params['chat_id'] = isset($key['message']['chat']['id'])?$key['message']['chat']['id']:'';
-						$callback($key);		
+						$result = array_merge($result,$key);
+						$chat_id = isset($key['message']['chat']['id'])?$key['message']['chat']['id']:'';
+						self::setParam(array('chat_id' => $chat_id));
+						$callback($result);			
+						
 					}
-				}		
-
-				file_put_contents($update_file, $update_id + 1);
-			
+					self::$update_id = $update_id + 1;
+				} else{		
+					$result = array_merge($result,$ret);
+					$callback($result);
+					if (isset($ret['error_code']))
+					{
+						if ($ret['error_code']==404){break;}
+					}
+				}	
+				
 			}
 		}
 	}

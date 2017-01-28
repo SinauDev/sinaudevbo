@@ -15,26 +15,31 @@ use \telegram\Bot;
 
 Bot::run(function($update)
 	{
-
-		$message = isset($update['message'])?$update['message']:'';
-		$inline = isset($update['inline_query'])?$update['inline_query']:'';
-				
-		$message_id = isset($message['message_id'])?$message['message_id']:'';
-				
-		Bot::setParam(array('reply_to_message_id' => $message_id));
-		
-		if (!empty($message))
+	
+	if ($update['error'] == false)
 		{
-			if ($message['text'] == 'ping')
-				{
-					$send = Bot::sendMessage('<b>PONG</b>');
-					//print_r($send);
-				}
-		}
+			$message = $update['message'];
+			$inline = isset($update['inline_query'])?$update['inline_query']:'';
+			$message_id = isset($message['message_id'])?$message['message_id']:'';
+				
+			Bot::setParam(array('reply_to_message_id' => $message_id));
+		
+			if (!empty($message))
+			{
+				if ($message['text'] == 'ping')
+					{
+						$send = Bot::sendMessage('<b>PONG</b>');
+						//print_r($send);
+					}
+			}
 
-		//inline method
-		if (!empty($inline)){  inlinebot($inline);	}
-	}
+			//inline method
+			if (!empty($inline)){  inlinebot($inline);	}
+		}
+		else{
+			if ($update['ok'] == false) print_r($update);
+		}
+	} 	
 );
 
 
