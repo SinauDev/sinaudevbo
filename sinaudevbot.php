@@ -1,17 +1,14 @@
 <?php
 
-require __DIR__ . '/config.php';
-require __DIR__ . '/helper.php';
-require __DIR__ . '/telegrambot.php';
+require __DIR__ . '/src/config.php';
+require __DIR__ . '/src/helper.php';
+require __DIR__ . '/src/telegrambot.php';
 
 use \telegram\Bot;
 
-//Bot::setToken('');
+Bot::setToken('');
 
 //print_r(Bot::getMe());
-//$webHookInfo = Bot::webHookInfo();
-//$isWebhook = empty($webHookInfo['url'])?false:true;
-//Bot::setWebhook($isWE)
 
 Bot::run(function($update)
 	{
@@ -28,9 +25,33 @@ Bot::run(function($update)
 			{
 				if ($message['text'] == 'ping')
 					{
-						$send = Bot::sendMessage('<b>PONG</b>');
-						//print_r($send);
+						$send = Bot::send('message','<b>PONG</b>');
 					}
+				
+				if ($message['text'] == 'sticker')
+					{
+						$send = Bot::send('sticker',__DIR__.'/test/stickerTest.png');				
+					}	
+				
+				if ($message['text'] == 'contact')
+					{
+						$send = Bot::send('contact',array('phone_number'=>'0217977752454','first_name'=>'Test Number'));
+					}
+				
+				if ($message['text'] == 'map')
+					{
+						/*  How to find a coordinates of a location?
+							1. On your computer, visit Google Maps.
+							2. Right-click a location on the map.
+							3. Select "What's here?".
+							4. A card appears at the bottom of the screen with more info.
+	
+						 */
+						//Send a location of The Zimbabwe		
+						$send = Bot::send('location',array('latitude'=>-18.389069, 'longitude'=> 29.160894));
+					}
+				
+				//print_r($send);
 			}
 
 			//inline method
@@ -41,7 +62,6 @@ Bot::run(function($update)
 		}
 	} 	
 );
-
 
 
 function inlinebot($inline){
