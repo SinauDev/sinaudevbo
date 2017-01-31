@@ -8,7 +8,7 @@ use \telegram\Bot;
 
 Bot::setToken('');
 
-//print_r(Bot::getMe());
+print_r(Bot::getMe());
 
 //print_r(Bot::get('me',false));
 //print_r(Bot::get('UserProfilePhotos','319298390'));
@@ -23,13 +23,36 @@ Bot::run(function($update)
 			$inline = isset($update['inline_query'])?$update['inline_query']:'';
 			$message_id = isset($message['message_id'])?$message['message_id']:'';
 		
+			//print_r(Bot::get('chat',$message['chat']['id']));
+			//print_r($message);
+
+			$reply = (isset($message['reply_to_message']))?$message['reply_to_message']:'';
+			//print_r($reply);
+			if (!empty($reply)){
+				if ($message['text']=='kick'){
+					Bot::kickMember($reply['chat']['id'],$reply['from']['id']);
+				}
+			}
+
 			Bot::setParam(array('reply_to_message_id' => $message_id));
 		
 			if (Bot::getChatType($message) == 'text')
 			{
+				
 				if ($message['text'] == 'ping')
 					{
-						$send = Bot::send('message','<b>PONG</b>');
+						$keyboard = [
+                		'inline_keyboard' =>[									
+									[
+										['text' =>  'Selengkapnya', 'url' => 'http://sinaudev.org'],
+										['text' =>  'Gabung Sinaudev', 'url' => 'https://t.me/sinaudev']
+									]								
+									
+									]
+                				];
+						$param['reply_markup']=json_encode($keyboard);
+						$send = Bot::send('message','<b>PONG</b>',$param);
+
 					}
 				
 				if ($message['text'] == 'photo')
@@ -54,7 +77,7 @@ Bot::run(function($update)
 						$send = Bot::send('location',array('latitude'=>-18.389069, 'longitude'=> 29.160894));
 					}
 				
-				//print_r($send);
+				
 			}
 
 			//inline method

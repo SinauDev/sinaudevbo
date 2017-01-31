@@ -20,7 +20,7 @@ class Bot {
 	}
 
 	public static function getMe(){
-		return self::send(array('cmd' => 'getMe'));
+		return self::BotSend(array('cmd' => 'getMe'));
 	}
 
 	public static function webHookInfo(){
@@ -100,6 +100,7 @@ class Bot {
 	public static function send($command,$req,$params=[])
 	{
 		$command = strtolower($command);
+
 		$params = array_merge(self::$params,$params);
 		
 		$toFile = function ($fileName){
@@ -186,7 +187,12 @@ class Bot {
 				
 				
 				$result = self::botSend(array('cmd'=>'sendContact','params'=>$params));
-				break;		
+				break;
+
+			case 'chataction':
+				$params['action'] = $req;
+				$result = self::botSend(array('cmd'=>'sendChatAction','params'=>$params));
+			 	break;
 			
 		}
 		
@@ -230,7 +236,7 @@ class Bot {
 	}
 
 	public static function getChatType($message){
-		return false; // default
+		
 		if (isset($message['text'])) return 'text';
 		if (isset($message['photo'])) return 'photo';
 		if (isset($message['sticker'])) return 'sticker';
@@ -241,7 +247,15 @@ class Bot {
 		if (isset($message['venue'])) return 'venue';
 		if (isset($message['new_chat_member'])) return 'join';
 		if (isset($message['left_chat_member'])) return 'left';
-		//new_chat_title
+		if (isset($message['new_chat_title'])) return 'change_title';
+		if (isset($message['new_chat_photo'])) return 'change_photo';
+		if (isset($message['delete_chat_photo'])) return 'delete_photo';
+		if (isset($message['group_chat_created'])) return 'group_created';
+		if (isset($message['supergroup_chat_created'])) return 'supergroup_created';
+		if (isset($message['channel_chat_created'])) return 'channel_created';
+		if (isset($message['migrate_to_chat_id'])) return 'to_supergroup';
+		if (isset($message['migrate_from_chat_id'])) return 'backto_group';
+		if (isset($message['pinned_message'])) return 'pinned';
 	}
 
 	public static function answerInlineQuery($query_id,$results){
@@ -251,6 +265,33 @@ class Bot {
 		return self::botSend(array('cmd'=>'answerInlineQuery', 'params'=>$params));
 	}
 
+
+	public static function bannedMember($chat_id,$user_id){
+		$params['chat_id'] = $chat_id;
+		$params['user_id'] = $user_id;
+		return self::botSend(array('cmd'=>'kickChatMember','params'=>$params));
+	}
+
+	public static function unbanMember($chat_id,$user_id){
+		$params['chat_id'] = $chat_id;
+		$params['user_id'] = $user_id;
+		return self::botSend(array('cmd'=>'unbanChatMember','params'=>$params));
+	}
+
+	public static function kickMember($chat_id,$user_id){
+		$checkGroup = Bot::get('chat',$chat_id);
+		$supergroup = false;
+		if ($checkGroup['result']['type']){
+			$supergroup = ($checkGroup['result']['type'] == 'supergroup')? true: false;
+		}
+
+		if ($supergroup){
+			self::bannedMember($chat_id,$user_id);
+			return self::unbanMember($chat_id,$user_id);
+		} else {
+			return self::bannedMember($chat_id,$user_id);
+		}
+	}
 	
 	private function botSend($args){
 
