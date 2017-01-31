@@ -10,6 +10,10 @@ Bot::setToken('');
 
 //print_r(Bot::getMe());
 
+//print_r(Bot::get('me',false));
+//print_r(Bot::get('UserProfilePhotos','319298390'));
+//print_r(Bot::getFile('AgADBQADqacxG1YbCBNMt7VsR7RVevI1yjIABBSPxe7OFu2_JIIAAgI'));
+
 Bot::run(function($update)
 	{
 	
@@ -18,19 +22,19 @@ Bot::run(function($update)
 			$message = $update['message'];
 			$inline = isset($update['inline_query'])?$update['inline_query']:'';
 			$message_id = isset($message['message_id'])?$message['message_id']:'';
-				
+		
 			Bot::setParam(array('reply_to_message_id' => $message_id));
 		
-			if (!empty($message))
+			if (Bot::getChatType($message) == 'text')
 			{
 				if ($message['text'] == 'ping')
 					{
 						$send = Bot::send('message','<b>PONG</b>');
 					}
 				
-				if ($message['text'] == 'sticker')
+				if ($message['text'] == 'photo')
 					{
-						$send = Bot::send('sticker',__DIR__.'/test/stickerTest.png');				
+						$send = Bot::send('photo',__DIR__.'/test/stickerTest.png');				
 					}	
 				
 				if ($message['text'] == 'contact')
@@ -40,13 +44,12 @@ Bot::run(function($update)
 				
 				if ($message['text'] == 'map')
 					{
-						/*  How to find a coordinates of a location?
-							1. On your computer, visit Google Maps.
-							2. Right-click a location on the map.
-							3. Select "What's here?".
-							4. A card appears at the bottom of the screen with more info.
+						//  How to find a coordinates of a location?
+						//	1. On your computer, visit Google Maps.
+						//	2. Right-click a location on the map.
+						//	3. Select "What's here?".
+						//	4. A card appears at the bottom of the screen with more info.
 	
-						 */
 						//Send a location of The Zimbabwe		
 						$send = Bot::send('location',array('latitude'=>-18.389069, 'longitude'=> 29.160894));
 					}

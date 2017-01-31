@@ -193,6 +193,57 @@ class Bot {
 		return $result;
 	}
 
+	public static function get($command,$req,$params=[]){
+		$command = strtolower($command);
+		$params = array_merge(self::$params,$params);
+		switch ($command) {			
+			case 'userprofilephotos':
+				$params['user_id'] = $req;
+				break;
+			case 'file':
+				$params['file_id'] = $req;
+				break;
+			case 'chat':
+			case 'chatadministrators':
+			case 'chatmemberscount':
+			case 'chatmember':
+				if ($command == 'chatmember'){
+					if (!is_array($req)) throw new Exception('Parameter must be an array');
+					$params['chat_id'] = $req['chat_id'];
+					$params['user_id'] = $req['user_id'];
+				} else {
+					$params['chat_id'] = $req;
+				}
+				break;
+		}
+		return self::botSend(array('cmd' => 'get'.ucwords($command),'params'=>$params));
+	}
+
+	public static function getFile($file_id){
+		$theURL = 'https://api.telegram.org/file/bot' . self::$token . '/';
+		$result = self::get('file',$file_id);
+		if (isset($result['result']['file_path'])){
+			return $theURL . $result['result']['file_path'];
+		} else{
+			return false;
+		}
+	}
+
+	public static function getChatType($message){
+		return false; // default
+		if (isset($message['text'])) return 'text';
+		if (isset($message['photo'])) return 'photo';
+		if (isset($message['sticker'])) return 'sticker';
+		if (isset($message['video'])) return 'video';
+		if (isset($message['voice'])) return 'voice';
+		if (isset($message['contact'])) return 'contact';
+		if (isset($message['location'])) return 'location';
+		if (isset($message['venue'])) return 'venue';
+		if (isset($message['new_chat_member'])) return 'join';
+		if (isset($message['left_chat_member'])) return 'left';
+		//new_chat_title
+	}
+
 	public static function answerInlineQuery($query_id,$results){
 		$params = self::$params;
 		$params['inline_query_id'] = $query_id;
