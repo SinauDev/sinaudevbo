@@ -6,13 +6,21 @@ require __DIR__ . '/src/telegrambot.php';
 
 use \telegram\Bot;
 
-Bot::setToken('');
+//Set Token
+Bot::setToken('',true);
 
-print_r(Bot::getMe());
-
-//print_r(Bot::get('me',false));
-//print_r(Bot::get('UserProfilePhotos','319298390'));
-//print_r(Bot::getFile('AgADBQADqacxG1YbCBNMt7VsR7RVevI1yjIABBSPxe7OFu2_JIIAAgI'));
+// Daftar seluruh plugins
+$plugin_dir = array_diff(scandir(__DIR__ .'/plugin'), array('..', '.'));
+$plugin_name = array();
+if (!empty($plugin_dir)){
+	foreach ($plugin_dir as $plugin_file) {
+		$pInfo = pathinfo($plugin_file);
+		if(strtolower($pInfo['extension'])=='php'){
+			require __DIR__.'/plugin/'.$plugin_file;
+			$plugin_name[] = str_replace('.php', '', $plugin_file);
+		}
+	}
+}
 
 Bot::run(function($update)
 	{
@@ -23,11 +31,8 @@ Bot::run(function($update)
 			$inline = isset($update['inline_query'])?$update['inline_query']:'';
 			$message_id = isset($message['message_id'])?$message['message_id']:'';
 		
-			//print_r(Bot::get('chat',$message['chat']['id']));
-			//print_r($message);
-
 			$reply = (isset($message['reply_to_message']))?$message['reply_to_message']:'';
-			//print_r($reply);
+			
 			if (!empty($reply)){
 				if ($message['text']=='kick'){
 					Bot::kickMember($reply['chat']['id'],$reply['from']['id']);
@@ -35,12 +40,25 @@ Bot::run(function($update)
 			}
 
 			Bot::setParam(array('reply_to_message_id' => $message_id));
-		
+			
+			// Membaca seluruh plugin dan function nya
+			for ($i=0; $i < count($plugin_name) ; $i++)
+	        {
+				$plugin_function = 'call_' . $plugin_name[$i];
+				if (function_exists($plugin_function))
+				{
+					$pResult = call_user_func($plugin_function,$update);
+				}
+			}
+			
 			if (Bot::getChatType($message) == 'text')
 			{
 				
+				
 				if ($message['text'] == 'ping')
 					{
+						
+				
 						$keyboard = [
                 		'inline_keyboard' =>[									
 									[
@@ -51,7 +69,7 @@ Bot::run(function($update)
 									]
                 				];
 						$param['reply_markup']=json_encode($keyboard);
-						$send = Bot::send('message','<b>PONG</b>',$param);
+						$send = Bot::send('message',"<b>PONG</b>\n{$myfile}",$param);
 
 					}
 				

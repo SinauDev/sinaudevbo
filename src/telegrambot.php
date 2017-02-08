@@ -10,9 +10,9 @@ class Bot {
 	private static $update_id = 0;
 	private static $query_id = 0;
 	
-	
-	public static function setToken($token){
+	public static function setToken($token,$isWebhook=false){
 		self::$token = $token;
+		self::$isWebhook = $isWebhook;
 	}
 	
 	public static function setParam($param=[]){
