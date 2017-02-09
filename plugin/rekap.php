@@ -1,5 +1,7 @@
 <?php
 
+use \telegram\Bot;
+
 function DirExists($dir){
 	return (file_exists($dir) && is_dir($dir)); 
 }
@@ -20,7 +22,13 @@ function call_rekap($update){
 		}
 		
 		if ($message['text'] == '!stop'){
-			if (file_exists($rekapDir . $rekapFile)) unlink($rekapDir . $rekapFile);
+			if (file_exists($rekapDir . $rekapFile)) 
+			{
+				$rekapDate = file_get_contents($rekapDir . $rekapFile);
+				$rekapNya = $rekapDir . $rekapDate.'-rekap.txt';
+				Bot::send('document',$rekapNya);
+				unlink($rekapDir . $rekapFile);
+			}
 		}
 		
 		if (file_exists($rekapDir . $rekapFile))
