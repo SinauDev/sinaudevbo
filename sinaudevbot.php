@@ -7,7 +7,7 @@ require __DIR__ . '/src/telegrambot.php';
 use \telegram\Bot;
 
 //Set Token
-Bot::setToken('',true);
+Bot::setToken('');
 
 // Daftar seluruh plugins
 $plugin_dir = array_diff(scandir(__DIR__ .'/plugin'), array('..', '.'));
@@ -22,7 +22,9 @@ if (!empty($plugin_dir)){
 	}
 }
 
-Bot::run(function($update)
+
+
+Bot::run(function($update) use (&$plugin_name)
 	{
 	
 	if ($update['error'] == false)
@@ -42,14 +44,13 @@ Bot::run(function($update)
 			Bot::setParam(array('reply_to_message_id' => $message_id));
 			
 			// Membaca seluruh plugin dan function nya
-			for ($i=0; $i < count($plugin_name) ; $i++)
-	        {
-				$plugin_function = 'call_' . $plugin_name[$i];
-				if (function_exists($plugin_function))
+			foreach($plugin_name as $plugin){
+				if (function_exists('call_'. $plugin))
 				{
-					$pResult = call_user_func($plugin_function,$update);
+					$pResult = call_user_func('call_'.$plugin,$update);
 				}
 			}
+						
 			
 			if (Bot::getChatType($message) == 'text')
 			{
